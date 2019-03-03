@@ -8,11 +8,10 @@ var webSock = new WebSocket("ws:/127.0.0.1:8888/websocket"); // Internal
 //var webSock = new WebSocket("ws:/192.168.1.100:8888/websocket"); // External
 
 // link map
-
 L.mapbox.accessToken = "pk.eyJ1IjoibW1heTYwMSIsImEiOiJjaWgyYWU3NWQweWx2d3ltMDl4eGk5eWY1In0.9YoOkALPP7zaoim34ZITxw";
 var map = L.mapbox.map("map", "mapbox.dark", {
-center: [0, 0], // lat, long
-zoom: 2
+    center: [0, 0], // lat, long
+    zoom: 2
 });
 
 // add full screen option
@@ -23,21 +22,21 @@ var hqLatLng = new L.LatLng(37.3845, -122.0881);
 
 // hq marker
 L.circle(hqLatLng, 110000, {
-color: 'red',
-fillColor: 'yellow',
-fillOpacity: 0.5,
+    color: 'red',
+    fillColor: 'yellow',
+    fillOpacity: 0.5,
 }).addTo(map);
 
 // Append <svg> to map
 var svg = d3.select(map.getPanes().overlayPane).append("svg")
-.attr("class", "leaflet-zoom-animated")
-.attr("width", window.innerWidth)
-.attr("height", window.innerHeight);
+    .attr("class", "leaflet-zoom-animated")
+    .attr("width", window.innerWidth)
+    .attr("height", window.innerHeight);
 
 // Append <g> to svg
 //var g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-function translateSVG() {
+function translateSVG () {
     var viewBoxLeft = document.querySelector("svg.leaflet-zoom-animated").viewBox.animVal.x;
     var viewBoxTop = document.querySelector("svg.leaflet-zoom-animated").viewBox.animVal.y;
 
@@ -47,7 +46,7 @@ function translateSVG() {
 
     // Adding the ViewBox attribute to our SVG to contain it
     svg.attr("viewBox", function () {
-        return "" + viewBoxLeft + " " + viewBoxTop + " "  + window.innerWidth + " " + window.innerHeight;
+        return "" + viewBoxLeft + " " + viewBoxTop + " " + window.innerWidth + " " + window.innerHeight;
     });
 
     // Adding the style attribute to our SVG to translate it
@@ -56,7 +55,7 @@ function translateSVG() {
     });
 }
 
-function update() {
+function update () {
     translateSVG();
     // additional stuff
 }
@@ -64,26 +63,24 @@ function update() {
 // Re-draw on reset, this keeps the markers where they should be on reset/zoom
 map.on("moveend", update);
 
-function calcMidpoint(x1, y1, x2, y2, bend) {
-    if(y2<y1 && x2<x1) {
+function calcMidpoint (x1, y1, x2, y2, bend) {
+    if (y2 < y1 && x2 < x1) {
         var tmpy = y2;
         var tmpx = x2;
         x2 = x1;
         y2 = y1;
         x1 = tmpx;
         y1 = tmpy;
-    }
-    else if(y2<y1) {
-        y1 = y2 + (y2=y1, 0);
-    }
-    else if(x2<x1) {
-        x1 = x2 + (x2=x1, 0);
+    } else if (y2 < y1) {
+        y1 = y2 + (y2 = y1, 0);
+    } else if (x2 < x1) {
+        x1 = x2 + (x2 = x1, 0);
     }
 
-    var radian = Math.atan(-((y2-y1)/(x2-x1)));
-    var r = Math.sqrt(x2-x1) + Math.sqrt(y2-y1);
-    var m1 = (x1+x2)/2;
-    var m2 = (y1+y2)/2;
+    var radian = Math.atan(-((y2 - y1) / (x2 - x1)));
+    var r = Math.sqrt(x2 - x1) + Math.sqrt(y2 - y1);
+    var m1 = (x1 + x2) / 2;
+    var m2 = (y1 + y2) / 2;
 
     var min = 2.5, max = 7.5;
     //var min = 1, max = 7;
@@ -97,26 +94,26 @@ function calcMidpoint(x1, y1, x2, y2, bend) {
         var b = Math.floor(m2 + r * arcIntensity * Math.cos(radian));
     }
 
-    return {"x":a, "y":b};
+    return {"x": a, "y": b};
 }
 
-function translateAlong(path) {
+function translateAlong (path) {
     var l = path.getTotalLength();
-    return function(i) {
-        return function(t) {
+    return function (i) {
+        return function (t) {
             // Put in try/catch because sometimes floating point is stupid..
             try {
-            var p = path.getPointAtLength(t*l);
-            return "translate(" + p.x + "," + p.y + ")";
-            } catch(err){
-            console.log("Caught exception.");
-            return "ERROR";
+                var p = path.getPointAtLength(t * l);
+                return "translate(" + p.x + "," + p.y + ")";
+            } catch (err) {
+                console.log("Caught exception.");
+                return "ERROR";
             }
         }
     }
 }
 
-function handleParticle(msg, srcPoint) {
+function handleParticle (msg, srcPoint) {
     var i = 0;
     var x = srcPoint['x'];
     var y = srcPoint['y'];
@@ -139,7 +136,7 @@ function handleParticle(msg, srcPoint) {
     //d3.event.preventDefault();
 }
 
-function handleTraffic(msg, srcPoint, hqPoint) {
+function handleTraffic (msg, srcPoint, hqPoint) {
     var fromX = srcPoint['x'];
     var fromY = srcPoint['y'];
     var toX = hqPoint['x'];
@@ -150,15 +147,19 @@ function handleTraffic(msg, srcPoint, hqPoint) {
     var lineData = [srcPoint, calcMidpoint(fromX, fromY, toX, toY, bend), hqPoint]
     var lineFunction = d3.svg.line()
         .interpolate("basis")
-        .x(function(d) {return d.x;})
-        .y(function(d) {return d.y;});
+        .x(function (d) {
+            return d.x;
+        })
+        .y(function (d) {
+            return d.y;
+        });
 
     var lineGraph = svg.append('path')
-            .attr('d', lineFunction(lineData))
-            .attr('opacity', 0.8)
-            .attr('stroke', msg.color)
-            .attr('stroke-width', 2)
-            .attr('fill', 'none');
+        .attr('d', lineFunction(lineData))
+        .attr('opacity', 0.8)
+        .attr('stroke', msg.color)
+        .attr('stroke-width', 2)
+        .attr('fill', 'none');
 
     if (translateAlong(lineGraph.node()) === 'ERROR') {
         console.log('translateAlong ERROR')
@@ -175,14 +176,14 @@ function handleTraffic(msg, srcPoint, hqPoint) {
         .duration(700)
         .ease('ease-in')
         .attrTween('transform', translateAlong(lineGraph.node()))
-        .each('end', function() {
+        .each('end', function () {
             d3.select(this)
                 .transition()
                 .duration(500)
                 .attr('r', circleRadius * 2.5)
                 .style('opacity', 0)
                 .remove();
-    });
+        });
 
     var length = lineGraph.node().getTotalLength();
     lineGraph.attr('stroke-dasharray', length + ' ' + length)
@@ -191,19 +192,19 @@ function handleTraffic(msg, srcPoint, hqPoint) {
         .duration(700)
         .ease('ease-in')
         .attr('stroke-dashoffset', 0)
-        .each('end', function() {
+        .each('end', function () {
             d3.select(this)
                 .transition()
                 .duration(100)
                 .style('opacity', 0)
                 .remove();
-    });
+        });
 }
 
 var circles = new L.LayerGroup();
 map.addLayer(circles);
 
-function addCircle(msg, srcLatLng) {
+function addCircle (msg, srcLatLng) {
     circleCount = circles.getLayers().length;
     circleArray = circles.getLayers();
 
@@ -216,25 +217,25 @@ function addCircle(msg, srcLatLng) {
         color: msg.color,
         fillColor: msg.color,
         fillOpacity: 0.2,
-        }).addTo(circles);
-    }
+    }).addTo(circles);
+}
 
-function prependAttackRow(id, args) {
+function prependAttackRow (id, args) {
     var tr = document.createElement('tr');
     count = args.length;
 
     for (var i = 0; i < count; i++) {
         var td = document.createElement('td');
         if (args[i] === args[2]) {
-        var path = 'flags/' + args[i] + '.png';
-        var img = document.createElement('img');
-        img.src = path;
-        td.appendChild(img);
-        tr.appendChild(td);
+            var path = 'flags/' + args[i] + '.png';
+            var img = document.createElement('img');
+            img.src = path;
+            td.appendChild(img);
+            tr.appendChild(td);
         } else {
-        var textNode = document.createTextNode(args[i]);
-        td.appendChild(textNode);
-        tr.appendChild(td);
+            var textNode = document.createTextNode(args[i]);
+            td.appendChild(textNode);
+            tr.appendChild(td);
         }
     }
 
@@ -243,13 +244,13 @@ function prependAttackRow(id, args) {
 
     // Only allow 50 rows
     if (rowCount >= 50) {
-        element.deleteRow(rowCount -1);
+        element.deleteRow(rowCount - 1);
     }
 
     element.insertBefore(tr, element.firstChild);
 }
 
-function prependTypeRow(id, args) {
+function prependTypeRow (id, args) {
     var tr = document.createElement('tr');
     count = args.length;
 
@@ -265,13 +266,13 @@ function prependTypeRow(id, args) {
 
     // Only allow 50 rows
     if (rowCount >= 50) {
-        element.deleteRow(rowCount -1);
+        element.deleteRow(rowCount - 1);
     }
 
     element.insertBefore(tr, element.firstChild);
 }
 
-function prependCVERow(id, args) {
+function prependCVERow (id, args) {
     var tr = document.createElement('tr');
 
     //count = args.length;
@@ -292,8 +293,8 @@ function prependCVERow(id, args) {
         var textNode = document.createTextNode(args[1]);
 
         var alink = document.createElement('a');
-        alink.setAttribute("href",args[1]);
-        alink.setAttribute("target","_blank")
+        alink.setAttribute("href", args[1]);
+        alink.setAttribute("target", "_blank")
         alink.style.color = "white";
         alink.appendChild(textNode);
 
@@ -318,24 +319,24 @@ function prependCVERow(id, args) {
 
     // Only allow 50 rows
     if (rowCount >= 50) {
-        element.deleteRow(rowCount -1);
+        element.deleteRow(rowCount - 1);
     }
 
     element.insertBefore(tr, element.firstChild);
 }
 
 
-function redrawCountIP(hashID, id, countList, codeDict) {
+function redrawCountIP (hashID, id, countList, codeDict) {
     $(hashID).empty();
     var element = document.getElementById(id);
 
     // Sort ips greatest to least
     // Create items array from dict
-    var items = Object.keys(countList[0]).map(function(key) {
+    var items = Object.keys(countList[0]).map(function (key) {
         return [key, countList[0][key]];
     });
     // Sort the array based on the second element
-    items.sort(function(first, second) {
+    items.sort(function (first, second) {
         return second[1] - first[1];
     });
     // Create new array with only the first 50 items
@@ -356,11 +357,11 @@ function redrawCountIP(hashID, id, countList, codeDict) {
         img.src = path;
         td1.appendChild(valueNode);
         td2.appendChild(img);
-       
+
         var alink = document.createElement('a');
-        alink.setAttribute("href","#");
-        alink.setAttribute("class","showInfo");
-        alink.style.color = "white";        
+        alink.setAttribute("href", "#");
+        alink.setAttribute("class", "showInfo");
+        alink.style.color = "white";
         alink.appendChild(keyNode);
 
         td3.appendChild(alink);
@@ -371,17 +372,17 @@ function redrawCountIP(hashID, id, countList, codeDict) {
     }
 }
 
-function redrawCountIP2(hashID, id, countList, codeDict) {
+function redrawCountIP2 (hashID, id, countList, codeDict) {
     $(hashID).empty();
     var element = document.getElementById(id);
 
     // Sort ips greatest to least
     // Create items array from dict
-    var items = Object.keys(countList[0]).map(function(key) {
+    var items = Object.keys(countList[0]).map(function (key) {
         return [key, countList[0][key]];
     });
     // Sort the array based on the second element
-    items.sort(function(first, second) {
+    items.sort(function (first, second) {
         return second[1] - first[1];
     });
     // Create new array with only the first 50 items
@@ -411,38 +412,38 @@ function redrawCountIP2(hashID, id, countList, codeDict) {
     }
 }
 
-function handleLegend(msg) {
+function handleLegend (msg) {
     var ipCountList = [msg.ips_tracked,
-               msg.iso_code];
+        msg.iso_code];
     var countryCountList = [msg.countries_tracked,
-                msg.iso_code];
+        msg.iso_code];
     var attackList = [msg.event_time,
-              msg.src_ip,
-              msg.iso_code,
-              msg.country,
-              msg.city,
-              msg.protocol];
-    redrawCountIP('#ip-tracking','ip-tracking', ipCountList, msg.ip_to_code);
+        msg.src_ip,
+        msg.iso_code,
+        msg.country,
+        msg.city,
+        msg.protocol];
+    redrawCountIP('#ip-tracking', 'ip-tracking', ipCountList, msg.ip_to_code);
     redrawCountIP2('#country-tracking', 'country-tracking', countryCountList, msg.country_to_code);
     prependAttackRow('attack-tracking', attackList);
 }
 
-function handleLegendType(msg) {
+function handleLegendType (msg) {
     var attackType = [msg.type2];
     var attackCve = [msg.event_time,
-             msg.type3,
-             msg.iso_code,
-             msg.src_ip,
-             //msg.country,
-             //msg.city,
-             //msg.protocol
-             ];
+        msg.type3,
+        msg.iso_code,
+        msg.src_ip,
+        //msg.country,
+        //msg.city,
+        //msg.protocol
+    ];
 
     if (attackType != "___") {
         prependTypeRow('attack-type', attackType);
     }
 
-    if (attackCve[1] != "___"){                
+    if (attackCve[1] != "___") {
         prependCVERow('attack-cveresp', attackCve);
     }
 }
@@ -454,40 +455,40 @@ webSock.onmessage = function (e) {
     try {
         var msg = JSON.parse(e.data);
         console.log(msg);
-        switch(msg.type) {
-        case "Traffic":
-            console.log("Traffic!");
-            var srcLatLng = new L.LatLng(msg.src_lat, msg.src_long);
-            var hqPoint = map.latLngToLayerPoint(hqLatLng);
-            var srcPoint = map.latLngToLayerPoint(srcLatLng);
-            console.log('');
-            addCircle(msg, srcLatLng);
-            handleParticle(msg, srcPoint);
-            handleTraffic(msg, srcPoint, hqPoint, srcLatLng);
-            handleLegend(msg);
-            handleLegendType(msg)
-            break;
-        // Add support for other message types?
+        switch (msg.type) {
+            case "Traffic":
+                console.log("Traffic!");
+                var srcLatLng = new L.LatLng(msg.src_lat, msg.src_long);
+                var hqPoint = map.latLngToLayerPoint(hqLatLng);
+                var srcPoint = map.latLngToLayerPoint(srcLatLng);
+                console.log('');
+                addCircle(msg, srcLatLng);
+                handleParticle(msg, srcPoint);
+                handleTraffic(msg, srcPoint, hqPoint, srcLatLng);
+                handleLegend(msg);
+                handleLegendType(msg)
+                break;
+            // Add support for other message types?
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err)
     }
 };
 
-$(document).on("click","#informIP #exit", function (e) {
-    $("#informIP").hide();      
+$(document).on("click", "#informIP #exit", function (e) {
+    $("#informIP").hide();
 });
 
-$(document).on("click", '.container-fluid .showInfo', function(e) {
+$(document).on("click", '.container-fluid .showInfo', function (e) {
     var iplink = $(this).text();
     $("#informIP").show();
-    $("#informIP").html( "<a id='ip_only' href='"+iplink+"'></a><button id='exit'>X</button><h3>"+iplink+"</h3><br><ul><li><a target = '_blank' href='http://www.senderbase.org/lookup/?search_string="+iplink+"'><b><u color=white>Senderbase</a></li><li><a target='_blank' href='https://ers.trendmicro.com/reputations/index'>Trend Micro</a></li><li><a target='_blank' href='http://www.anti-abuse.org/multi-rbl-check-results/?host="+iplink+"'>Anti-abuse</a></li></ul><br><button id='blockIP' alt='"+iplink+"'>Block IP</button>   ");
+    $("#informIP").html("<a id='ip_only' href='" + iplink + "'></a><button id='exit'>X</button><h3>" + iplink + "</h3><br><ul><li><a target = '_blank' href='http://www.senderbase.org/lookup/?search_string=" + iplink + "'><b><u color=white>Senderbase</a></li><li><a target='_blank' href='https://ers.trendmicro.com/reputations/index'>Trend Micro</a></li><li><a target='_blank' href='http://www.anti-abuse.org/multi-rbl-check-results/?host=" + iplink + "'>Anti-abuse</a></li></ul><br><button id='blockIP' alt='" + iplink + "'>Block IP</button>   ");
 });
 
 
-$(document).on("click","#informIP #blockIP", function (e) {
-    var ip= $(this).attr('alt');
-    var ipBlocked = "ip_blocked:"+ip;
-    console.log("Sending message: "+ipBlocked);
+$(document).on("click", "#informIP #blockIP", function (e) {
+    var ip = $(this).attr('alt');
+    var ipBlocked = "ip_blocked:" + ip;
+    console.log("Sending message: " + ipBlocked);
     webSock.send(ipBlocked);
 });

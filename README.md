@@ -47,11 +47,10 @@ Tested on Ubuntu 18.04 LTS.
   sudo pip3 install -U -r requirements.txt
   ```
   
-* Start Redis Server(If not start):
+* Start Redis Server(if it isn't started already.):
 
   ```sh
   redis-server
-
   ```
 * Configure the Data Server DB:
   
@@ -86,16 +85,17 @@ Tested on Ubuntu 18.04 LTS.
     ``` 
 
   * Change mapbox accessToken. (mapbox: https://account.mapbox.com/)
-   * Edit the APIKey in the file "/static/map.js" at "AttackMapServer" directory. From:
+
+    * Edit the APIKey in the file "/static/map.js" at "AttackMapServer" directory. From:
       
-     ```javascript
-     L.mapbox.accessToken = "pk.eyJ1IjoibW1heTYwMSIsImEiOiJjaWgyYWU3NWQweWx2d3ltMDl4eGk5eWY1In0.9YoOkALPP7zaoim34ZITxw";
-     ```
-   * To, for example: 
-     
-     ```javascript
-     L.mapbox.accessToken = "pk.xxxxxxxxxxxx";
-     ```
+      ```javascript
+      L.mapbox.accessToken = "pk.eyJ1IjoibW1heTYwMSIsImEiOiJjaWgyYWU3NWQweWx2d3ltMDl4eGk5eWY1In0.9YoOkALPP7zaoim34ZITxw";
+      ```
+    * To, for example: 
+      
+      ```javascript
+      L.mapbox.accessToken = "pk.xxxxxxxxxxxx";
+      ```
 
 * Start the Attack Map Server:
   
@@ -109,7 +109,7 @@ Tested on Ubuntu 18.04 LTS.
 
     * To access via browser on another computer, use the external IP of the machine running the AttackMapServer.
     
-     * Edit the IP Address in the file "/static/map.js" at "AttackMapServer" directory. From:
+      * Edit the IP Address in the file "/static/map.js" at "AttackMapServer" directory. From:
       
        ```javascript
        var webSock = new WebSocket("ws:/127.0.0.1:8888/websocket");

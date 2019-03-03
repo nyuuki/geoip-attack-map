@@ -2,7 +2,7 @@
 
 # Install system dependencies
 echo "Installing system dependencies..."
-sudo apt install python3-pip redis-server;
+sudo apt install python3-pip redis-server git unzip;
 
 # Install python requirements
 echo "Installing python dependencies..."
