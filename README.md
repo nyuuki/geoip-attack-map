@@ -26,19 +26,18 @@ If you find any errors or bugs, please let me know. Questions and feedback are a
 
 
 ### Deploy example
-Tested on Ubuntu 16.04 LTS.
-
-* Clone the application:
-
-  ```sh
-  git clone https://github.com/matthewclarkmay/geoip-attack-map.git
-  ```
+Tested on Ubuntu 18.04 LTS.
 
 * Install system dependencies:
 
   ```sh
-  sudo apt install python3-pip redis-server
+  sudo apt install python3-pip redis-server git unzip
+  ```
 
+* Clone the application:
+
+  ```sh
+  git clone https://github.com/nyuuki/geoip-attack-map.git
   ```
 
 * Install python requirements:
@@ -46,10 +45,9 @@ Tested on Ubuntu 16.04 LTS.
   ```sh
   cd geoip-attack-map
   sudo pip3 install -U -r requirements.txt
-
   ```
   
-* Start Redis Server:
+* Start Redis Server(If not start):
 
   ```sh
   redis-server
@@ -61,14 +59,12 @@ Tested on Ubuntu 16.04 LTS.
   cd DataServerDB
   ./db-dl.sh
   cd ..
-
   ```
 * Start the Data Server:
 
     ```sh
   cd DataServer
   sudo python3 DataServer.py
-
   ```
   
 * Start the Syslog Gen Script, inside DataServer directory:
@@ -80,15 +76,27 @@ Tested on Ubuntu 16.04 LTS.
     ./syslog-gen.sh
     ```
 
-* Configure the Attack Map Server, extract the flags to the right place:
+* Configure the Attack Map Server, extract the flags to the right place, and change mapbox accessToken:
 
   * Open a new terminal tab (Ctrl+Shift+T, on Ubuntu).
   
     ```sh
-    cd AttackMapServer/
-    unzip static/flags.zip
+    cd AttackMapServer/static/
+    unzip flags.zip
     ``` 
- 
+
+  * Change mapbox accessToken. (mapbox: https://account.mapbox.com/)
+   * Edit the APIKey in the file "/static/map.js" at "AttackMapServer" directory. From:
+      
+     ```javascript
+     L.mapbox.accessToken = "pk.eyJ1IjoibW1heTYwMSIsImEiOiJjaWgyYWU3NWQweWx2d3ltMDl4eGk5eWY1In0.9YoOkALPP7zaoim34ZITxw";
+     ```
+   * To, for example: 
+     
+     ```javascript
+     L.mapbox.accessToken = "pk.xxxxxxxxxxxx";
+     ```
+
 * Start the Attack Map Server:
   
     ```sh
@@ -98,7 +106,7 @@ Tested on Ubuntu 16.04 LTS.
 * Access the Attack Map Server from browser:
 
     * [http://localhost:8888/](http://localhost:8888/) or [http://127.0.0.1:8888/](http://127.0.0.1:8888/)
-  
+
     * To access via browser on another computer, use the external IP of the machine running the AttackMapServer.
     
      * Edit the IP Address in the file "/static/map.js" at "AttackMapServer" directory. From:
