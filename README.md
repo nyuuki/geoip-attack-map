@@ -15,7 +15,7 @@ This program relies entirely on syslog, and because all appliances format logs d
 ### Configs 
 1. Make sure in **/etc/redis/redis.conf** to change **bind 127.0.0.1** to **bind 0.0.0.0** if you plan on running the DataServer on a different machine than the AttackMapServer.
 2. Make sure that the WebSocket address in **/AttackMapServer/index.html** points back to the IP address of the **AttackMapServer** so the browser knows the address of the WebSocket.
-3. Download the MaxMind GeoLite2 database, and change the db_path variable in **DataServer.py** to the wherever you store the database.
+3. Download the MaxMind GeoLite2 database, and change the DB_PATH variable in **DataServer.py** to the wherever you store the database.
     * ./db-dl.sh
 4. Add headquarters latitude/longitude to hqLatLng variable in **index.html**
 5. Use syslog-gen.py, or syslog-gen.sh to simulate dummy traffic "out of the box."

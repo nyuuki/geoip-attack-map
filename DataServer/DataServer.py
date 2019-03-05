@@ -6,41 +6,20 @@ AUTHOR: Matthew May - mcmay.web@gmail.com
 
 # Imports
 import json
-# import logging
-import maxminddb
-# import re
 import redis
 import io
-
-from const import META, PORTMAP
-
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
-# from os import getuid
 from sys import exit
-# from textwrap import dedent
+from const import META, PORTMAP, REDIS_IP, SYSLOG_PATH, DB_PATH, HQ_IP
 from time import gmtime, localtime, sleep, strftime
+import maxminddb
 
-# start the Redis server if it isn't started already.
-# $ redis-server
-# default port is 6379
-# make sure system can use a lot of memory and overcommit memory
+# import logging
+# import re
+# from argparse import ArgumentParser, RawDescriptionHelpFormatter
+# from os import getuid
+# from textwrap import dedent
 
-redis_ip = '127.0.0.1'
-redis_instance = None
-
-# required input paths
-# syslog_path = '/var/log/syslog'
-syslog_path = 'syslog'
-# syslog_path = '/var/log/reverse-proxy.log'
-db_path = '../DataServerDB/GeoLite2-City.mmdb'
-
-# file to log data
-# log_file_out = '/var/log/map_data_server.out'
-
-# ip for headquarters
-hq_ip = '8.8.8.8'
-
-# stats
+# Create clean dictionary using unclean db dictionary contents
 server_start_time = strftime("%d-%m-%Y %H:%M:%S", localtime())  # local time
 event_count = 0
 continents_tracked = {}
@@ -82,11 +61,35 @@ unknowns = {}
 #                self[default] = defaults[default]
 # ---------------------------------------------------------
 
-# Create clean dictionary using unclean db dictionary contents
+# def menu():
+# Instantiate parser
+# parser = ArgumentParser(
+#        prog='DataServer.py',
+#        usage='%(progs)s [OPTIONS]',
+#        formatter_class=RawDescriptionHelpFormatter,
+#        description=dedent('''\
+#                --------------------------------------------------------------
+#                Data server for attack map application.
+#                --------------------------------------------------------------'''))
+
+# @TODO --> Add support for command line args?
+# define command line arguments
+# parser.add_argument('-db', '--database', dest='DB_PATH', required=True, type=str, help='path to maxmind database')
+# parser.add_argument('-m', '--readme', dest='readme', help='print readme')
+# parser.add_argument('-o', '--output', dest='output', help='file to write logs to')
+# parser.add_argument('-r', '--random', action='store_true', dest='randomize', help='generate random IPs/protocols for demo')
+# parser.add_argument('-rs', '--redis-server-ip', dest='REDIS_IP', type=str, help='redis server ip address')
+# parser.add_argument('-sp', '--syslog-path', dest='SYSLOG_PATH', type=str, help='path to syslog file')
+# parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', help='run server in verbose mode')
+
+# Parse arguments/options
+# args = parser.parse_args()
+# return args
+
+
 def clean_db(unclean):
     selected = {}
     for tag in META:
-        head = None
         if tag['tag'] in unclean:
             head = unclean[tag['tag']]
             for node in tag['path']:
@@ -100,8 +103,8 @@ def clean_db(unclean):
     return selected
 
 
-def connect_redis(redis_ip):
-    r = redis.StrictRedis(host=redis_ip, port=6379, db=0)
+def connect_redis():
+    r = redis.StrictRedis(host=REDIS_IP, port=6379, db=0)
     return r
 
 
@@ -124,8 +127,8 @@ def get_tcp_udp_proto(src_port, dst_port):
     return "OTHER"
 
 
-def find_hq_lat_long(hq_ip):
-    hq_ip_db_unclean = parse_maxminddb(db_path, hq_ip)
+def find_hq_lat_long():
+    hq_ip_db_unclean = parse_maxminddb(HQ_IP)
     if hq_ip_db_unclean:
         hq_ip_db_clean = clean_db(hq_ip_db_unclean)
         dst_lat = hq_ip_db_clean['latitude']
@@ -140,9 +143,9 @@ def find_hq_lat_long(hq_ip):
         exit()
 
 
-def parse_maxminddb(db_path, ip):
+def parse_maxminddb(ip):
     try:
-        reader = maxminddb.open_database(db_path)
+        reader = maxminddb.open_database(DB_PATH)
         response = reader.get(ip)
         reader.close()
         return response
@@ -211,32 +214,6 @@ def shutdown_and_report_stats():
     exit()
 
 
-# def menu():
-# Instantiate parser
-# parser = ArgumentParser(
-#        prog='DataServer.py',
-#        usage='%(progs)s [OPTIONS]',
-#        formatter_class=RawDescriptionHelpFormatter,
-#        description=dedent('''\
-#                --------------------------------------------------------------
-#                Data server for attack map application.
-#                --------------------------------------------------------------'''))
-
-# @TODO --> Add support for command line args?
-# define command line arguments
-# parser.add_argument('-db', '--database', dest='db_path', required=True, type=str, help='path to maxmind database')
-# parser.add_argument('-m', '--readme', dest='readme', help='print readme')
-# parser.add_argument('-o', '--output', dest='output', help='file to write logs to')
-# parser.add_argument('-r', '--random', action='store_true', dest='randomize', help='generate random IPs/protocols for demo')
-# parser.add_argument('-rs', '--redis-server-ip', dest='redis_ip', type=str, help='redis server ip address')
-# parser.add_argument('-sp', '--syslog-path', dest='syslog_path', type=str, help='path to syslog file')
-# parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', help='run server in verbose mode')
-
-# Parse arguments/options
-# args = parser.parse_args()
-# return args
-
-
 def merge_dicts(*args):
     super_dict = {}
     for arg in args:
@@ -253,8 +230,8 @@ def track_flags(super_dict, tracking_dict, key1, key2):
 
 
 def track_stats(super_dict, tracking_dict, key):
-    if key in super_dict:
-        node = super_dict[key]
+    node = super_dict.get(key, False)
+    if node is not False:
         if node in tracking_dict:
             tracking_dict[node] += 1
         else:
@@ -272,20 +249,20 @@ def main():
     #    print('SHUTTING DOWN')
     #    exit()
     
-    global db_path, log_file_out, redis_ip, redis_instance, syslog_path, hq_ip
-    global continents_tracked, countries_tracked, ips_tracked, postal_codes_tracked, event_count, unknown, ip_to_code, country_to_code
+    global continents_tracked, countries_tracked, ips_tracked, \
+        event_count, ip_to_code, country_to_code
     
     # args = menu()
     
     # Connect to Redis
-    redis_instance = connect_redis(redis_ip)
-    
+    redis_instance = connect_redis()
     # Find HQ lat/long
-    hq_dict = find_hq_lat_long(hq_ip)
+    hq_dict = find_hq_lat_long()
     
     # Follow/parse/format/publish syslog data
-    with io.open(syslog_path, "r", encoding='ISO-8859-1') as syslog_file:
+    with io.open(SYSLOG_PATH, "r", encoding='ISO-8859-1') as syslog_file:
         syslog_file.readlines()
+        
         while True:
             where = syslog_file.tell()
             line = syslog_file.readline()
@@ -295,7 +272,7 @@ def main():
             else:
                 syslog_data_dict = parse_syslog(line)
                 if syslog_data_dict:
-                    ip_db_unclean = parse_maxminddb(db_path, syslog_data_dict['src_ip'])
+                    ip_db_unclean = parse_maxminddb(syslog_data_dict['src_ip'])
                     if ip_db_unclean:
                         event_count += 1
                         ip_db_clean = clean_db(ip_db_unclean)
