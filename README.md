@@ -1,10 +1,11 @@
 ### First and Foremost
-I do not have much time in my life right now to maintain this project. I undertook this challenge as a means to learn JavaScript, and to improve upon the Python I already knew. I'm sure there are several things I could have done differently in my implementation, and I won't be offended if I receive constructive criticism from someone who downloads and views my code. I know I learned a ton when working on this, and I hope the open source community will continue to teach me things :)
 
 NOTE: Because I don't maintain this project there are a few features that probably don't work out the box, for example, the map probably won't display because I don't pay for a legitimate MapBox API key. To fix this you will probably have to create your own MapBox account and use your own key.
 
 ### Cyber Security GeoIP Attack Map Visualization
 This geoip attack map visualizer was developed to display network attacks on your organization in real time. The data server follows a syslog file, and parses out source IP, destination IP, source port, and destination port. Protocols are determined via common ports, and the visualizations vary in color based on protocol type. [CLICK HERE](https://www.youtube.com/watch?v=zTvLJjTzJnU) for a demo video. This project would not be possible if it weren't for Sam Cappella, who created a cyber defense competition network traffic visualizer for the 2015 Palmetto Cyber Defense Competition. I mainly used his code as a reference, but I did borrow a few functions while creating the display server, and visual aspects of the webapp. I would also like to give special thanks to [Dylan Madisetti](http://www.dylanmadisetti.com/) as well for giving me advice about certain aspects of my implementation.
+
+![demo](https://user-images.githubusercontent.com/1908103/53971231-cf68ae80-413f-11e9-8cb2-422d237b6376.gif)
 
 ### Important
 This program relies entirely on syslog, and because all appliances format logs differently, you will need to customize the log parsing function(s). If your organization uses a security information and event management system (SIEM), it can probably normalize logs to save you a ton of time writing regex.
@@ -22,7 +23,7 @@ This program relies entirely on syslog, and because all appliances format logs d
 6. **IMPORTANT: Remember, this code will only run correctly in a production environment after personalizing the parsing functions. The default parsing function is only written to parse ./syslog-gen.sh traffic.**
 
 ### Bugs, Feedback, and Questions
-If you find any errors or bugs, please let me know. Questions and feedback are also welcome, and can be sent to mcmay.web@gmail.com, or open an issue in this repository.
+If you find any errors or bugs, please let me know. 
 
 
 ### Deploy example
