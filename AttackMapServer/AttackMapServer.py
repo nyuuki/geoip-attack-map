@@ -17,7 +17,7 @@ import tornado.websocket
 # from os import getuid, path
 # from os import path
 from sys import exit
-from const import SERVICE_RGB, REDIS_IP, WEBSOCK_PORT
+from mapconst import SERVICE_RGB, REDIS_IP, WEBSOCK_PORT
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -73,7 +73,7 @@ class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
             return None
         
         protocol = json_data.get('protocol')
-        
+        print()
         # TODO Refactor
         msg_to_send = {
             'type':json_data.get('msg_type'),
@@ -104,8 +104,15 @@ class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
             'event_time':json_data.get('event_time'),
             'country_to_code':json_data.get('country_to_code'),
             'ip_to_code':json_data.get('ip_to_code'),
+            
+            'dst_country_to_code':json_data.get('dst_country_to_code'),
+            'dst_countries_tracked':json_data.get('dst_countries_tracked'),
+            'dst_continent':json_data.get('dst_continent'),
+            "dst_iso_code":json_data.get('dst_iso_code'),
+            'dst_ip_to_code':json_data.get('dst_ip_to_code'),
+            'dst_ips_tracked':json_data.get('dst_ips_tracked'),
         }
-        
+        print(json_data.get('dst_lat'), json_data.get('dst_long'))
         self.write_message(json.dumps(msg_to_send))
 
 

@@ -9,6 +9,7 @@ var webSock = new WebSocket("ws:/127.0.0.1:8888/websocket"); // Internal
 
 // link map
 L.mapbox.accessToken = "pk.eyJ1IjoibW1heTYwMSIsImEiOiJjaWgyYWU3NWQweWx2d3ltMDl4eGk5eWY1In0.9YoOkALPP7zaoim34ZITxw";
+
 var map = L.mapbox.map("map", "mapbox.dark", {
     center: [0, 0], // lat, long
     zoom: 2
@@ -280,9 +281,11 @@ function prependCVERow (id, args) {
 
     for (var i = 0; i < count; i++) {
         var td1 = document.createElement('td');
-        var td2 = document.createElement('td');
+        // var td2 = document.createElement('td');
         var td3 = document.createElement('td');
         var td4 = document.createElement('td');
+        var td5 = document.createElement('td');
+        var td6 = document.createElement('td');
 
         // Timestamp
         var textNode2 = document.createTextNode(args[0]);
@@ -290,16 +293,17 @@ function prependCVERow (id, args) {
         tr.appendChild(td1);
 
         // Exploit
-        var textNode = document.createTextNode(args[1]);
 
-        var alink = document.createElement('a');
-        alink.setAttribute("href", args[1]);
-        alink.setAttribute("target", "_blank")
-        alink.style.color = "white";
-        alink.appendChild(textNode);
+        //var textNode = document.createTextNode(args[1]);
 
-        td2.appendChild(alink);
-        tr.appendChild(td2);
+        //var alink = document.createElement('a');
+        //alink.setAttribute("href", args[1]);
+        //alink.setAttribute("target", "_blank")
+        //alink.style.color = "white";
+        //alink.appendChild(textNode);
+
+        //td2.appendChild(alink);
+        //tr.appendChild(td2);
 
         // Flag
         var path = 'flags/' + args[2] + '.png';
@@ -312,6 +316,18 @@ function prependCVERow (id, args) {
         var textNode3 = document.createTextNode(args[3]);
         td4.appendChild(textNode3);
         tr.appendChild(td4);
+
+        // dst Flag
+        var dst_path = 'flags/' + args[4] + '.png';
+        var dst_img = document.createElement('img');
+        dst_img.src = dst_path;
+        td5.appendChild(dst_img);
+        tr.appendChild(td5);
+
+        // dst IP
+        var textNode4 = document.createTextNode(args[5]);
+        td6.appendChild(textNode4);
+        tr.appendChild(td6);
     }
 
     var element = document.getElementById(id);
@@ -434,6 +450,8 @@ function handleLegendType (msg) {
         msg.type3,
         msg.iso_code,
         msg.src_ip,
+        msg.dst_iso_code,
+        msg.dst_ip,
         //msg.country,
         //msg.city,
         //msg.protocol
@@ -459,7 +477,12 @@ webSock.onmessage = function (e) {
             case "Traffic":
                 console.log("Traffic!");
                 var srcLatLng = new L.LatLng(msg.src_lat, msg.src_long);
-                var hqPoint = map.latLngToLayerPoint(hqLatLng);
+                var dstLatLng = new L.LatLng(msg.dst_lat, msg.dst_long);
+                // console.log(srcLatLng);
+                // console.log(dstLatLng);
+
+                // var hqPoint = map.latLngToLayerPoint(hqLatLng);
+                var hqPoint = map.latLngToLayerPoint(dstLatLng);
                 var srcPoint = map.latLngToLayerPoint(srcLatLng);
                 console.log('');
                 addCircle(msg, srcLatLng);

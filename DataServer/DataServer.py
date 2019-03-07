@@ -9,7 +9,7 @@ import json
 import redis
 import io
 from sys import exit
-from const import META, PORTMAP, REDIS_IP, SYSLOG_PATH, DB_PATH, HQ_IP
+from dbconst import META, PORTMAP, REDIS_IP, SYSLOG_PATH, DB_PATH, HQ_IP
 from time import gmtime, localtime, sleep, strftime
 import maxminddb
 
@@ -18,17 +18,6 @@ import maxminddb
 # from argparse import ArgumentParser, RawDescriptionHelpFormatter
 # from os import getuid
 # from textwrap import dedent
-
-# Create clean dictionary using unclean db dictionary contents
-server_start_time = strftime("%d-%m-%Y %H:%M:%S", localtime())  # local time
-event_count = 0
-continents_tracked = {}
-countries_tracked = {}
-country_to_code = {}
-ip_to_code = {}
-ips_tracked = {}
-unknowns = {}
-
 
 # @IDEA
 # ---------------------------------------------------------
@@ -86,6 +75,22 @@ unknowns = {}
 # args = parser.parse_args()
 # return args
 
+# Create clean dictionary using unclean db dictionary contents
+server_start_time = strftime("%d-%m-%Y %H:%M:%S", localtime())  # local time
+event_count = 0
+continents_tracked = {}
+countries_tracked = {}
+country_to_code = {}
+ip_to_code = {}
+ips_tracked = {}
+unknowns = {}
+
+dst_ip_to_code = {}
+dst_ips_tracked = {}
+dst_countries_tracked = {}
+dst_country_to_code = {}
+dst_continents_tracked = {}
+
 
 def clean_db(unclean):
     selected = {}
@@ -125,22 +130,6 @@ def get_tcp_udp_proto(src_port, dst_port):
         return PORTMAP[dst_port]
     
     return "OTHER"
-
-
-def find_hq_lat_long():
-    hq_ip_db_unclean = parse_maxminddb(HQ_IP)
-    if hq_ip_db_unclean:
-        hq_ip_db_clean = clean_db(hq_ip_db_unclean)
-        dst_lat = hq_ip_db_clean['latitude']
-        dst_long = hq_ip_db_clean['longitude']
-        hq_dict = {
-            'dst_lat':dst_lat,
-            'dst_long':dst_long
-        }
-        return hq_dict
-    else:
-        print('Please provide a valid IP address for headquarters')
-        exit()
 
 
 def parse_maxminddb(ip):
@@ -224,7 +213,7 @@ def merge_dicts(*args):
 def track_flags(super_dict, tracking_dict, key1, key2):
     if key1 in super_dict:
         if key2 in super_dict:
-            if key1 in tracking_dict:
+            if key1 not in tracking_dict:
                 tracking_dict[super_dict[key1]] = super_dict[key2]
     return
 
@@ -249,15 +238,16 @@ def main():
     #    print('SHUTTING DOWN')
     #    exit()
     
-    global continents_tracked, countries_tracked, ips_tracked, \
-        event_count, ip_to_code, country_to_code
+    global event_count, \
+        continents_tracked, countries_tracked, ips_tracked, ip_to_code, country_to_code, \
+        dst_continents_tracked, dst_countries_tracked, dst_ips_tracked, dst_ip_to_code, dst_country_to_code
     
     # args = menu()
     
     # Connect to Redis
     redis_instance = connect_redis()
     # Find HQ lat/long
-    hq_dict = find_hq_lat_long()
+    # hq_dict = find_hq_lat_long()
     
     # Follow/parse/format/publish syslog data
     with io.open(SYSLOG_PATH, "r", encoding='ISO-8859-1') as syslog_file:
@@ -273,10 +263,11 @@ def main():
                 syslog_data_dict = parse_syslog(line)
                 if syslog_data_dict:
                     ip_db_unclean = parse_maxminddb(syslog_data_dict['src_ip'])
-                    if ip_db_unclean:
+                    dst_ip_db_unclean = parse_maxminddb(syslog_data_dict['dst_ip'])
+                    if ip_db_unclean and dst_ip_db_unclean:
                         event_count += 1
                         ip_db_clean = clean_db(ip_db_unclean)
-                        
+                        dst_ip_db_clean = clean_db(dst_ip_db_unclean)
                         msg_type = {'msg_type':get_msg_type()}
                         msg_type2 = {'msg_type2':syslog_data_dict['type_attack']}
                         msg_type3 = {'msg_type3':syslog_data_dict['cve_attack']}
@@ -285,34 +276,58 @@ def main():
                                 syslog_data_dict['src_port'],
                                 syslog_data_dict['dst_port']
                         )}
+                        
+                        dst_dict = dict()
+                        for k, v in dst_ip_db_clean.items():
+                            if k == 'latitude':
+                                dst_dict.update({"dst_lat":v})
+                            elif k == "longitude":
+                                dst_dict.update({"dst_long":v})
+                            else:
+                                dst_dict.update({"dst_" + k:v})
+                        
                         super_dict = merge_dicts(
-                                hq_dict,
                                 ip_db_clean,
+                                dst_dict,
                                 msg_type,
                                 msg_type2,
                                 msg_type3,
                                 proto,
                                 syslog_data_dict
                         )
+                        # print(super_dict)
                         
                         # Track Stats
+                        event_time = strftime("%d-%m-%Y %H:%M:%S", localtime())  # local time
+                        # event_time = strftime("%Y-%m-%d %H:%M:%S", gmtime()) # UTC time
                         track_stats(super_dict, continents_tracked, 'continent')
                         track_stats(super_dict, countries_tracked, 'country')
                         track_stats(super_dict, ips_tracked, 'src_ip')
-                        event_time = strftime("%d-%m-%Y %H:%M:%S", localtime())  # local time
-                        # event_time = strftime("%Y-%m-%d %H:%M:%S", gmtime()) # UTC time
                         track_flags(super_dict, country_to_code, 'country', 'iso_code')
                         track_flags(super_dict, ip_to_code, 'src_ip', 'iso_code')
                         
+                        track_stats(super_dict, dst_continents_tracked, 'dst_continent')
+                        track_stats(super_dict, dst_countries_tracked, 'dst_country')
+                        track_stats(super_dict, dst_ips_tracked, 'dst_ip')
+                        track_flags(super_dict, dst_country_to_code, 'dst_country', 'dst_iso_code')
+                        track_flags(super_dict, dst_ip_to_code, 'dst_ip', 'dst_iso_code')
+                        
                         # Append stats to super_dict
                         super_dict['event_count'] = event_count
+                        super_dict['event_time'] = event_time
+                        super_dict['unknowns'] = unknowns
+                        
                         super_dict['continents_tracked'] = continents_tracked
                         super_dict['countries_tracked'] = countries_tracked
                         super_dict['ips_tracked'] = ips_tracked
-                        super_dict['unknowns'] = unknowns
-                        super_dict['event_time'] = event_time
                         super_dict['country_to_code'] = country_to_code
                         super_dict['ip_to_code'] = ip_to_code
+                        
+                        super_dict['dst_continents_tracked'] = dst_continents_tracked
+                        super_dict['dst_countries_tracked'] = dst_countries_tracked
+                        super_dict['dst_ips_tracked'] = dst_ips_tracked
+                        super_dict['dst_country_to_code'] = dst_country_to_code
+                        super_dict['dst_ip_to_code'] = dst_ip_to_code
                         
                         json_data = json.dumps(super_dict)
                         redis_instance.publish('attack-map-production', json_data)
