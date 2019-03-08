@@ -137,15 +137,15 @@ function handleParticle (msg, srcPoint) {
     //d3.event.preventDefault();
 }
 
-function handleTraffic (msg, srcPoint, hqPoint) {
+function handleTraffic (msg, srcPoint, dstPoint) {
     var fromX = srcPoint['x'];
     var fromY = srcPoint['y'];
-    var toX = hqPoint['x'];
-    var toY = hqPoint['y'];
+    var toX = dstPoint['x'];
+    var toY = dstPoint['y'];
     var bendArray = [true, false];
     var bend = bendArray[Math.floor(Math.random() * bendArray.length)];
 
-    var lineData = [srcPoint, calcMidpoint(fromX, fromY, toX, toY, bend), hqPoint]
+    var lineData = [srcPoint, calcMidpoint(fromX, fromY, toX, toY, bend), dstPoint]
     var lineFunction = d3.svg.line()
         .interpolate("basis")
         .x(function (d) {
@@ -205,7 +205,7 @@ function handleTraffic (msg, srcPoint, hqPoint) {
 var circles = new L.LayerGroup();
 map.addLayer(circles);
 
-function addCircle (msg, srcLatLng) {
+function addCircle (msg, srcLatLng, dstLatLng) {
     circleCount = circles.getLayers().length;
     circleArray = circles.getLayers();
 
@@ -215,6 +215,11 @@ function addCircle (msg, srcLatLng) {
     }
 
     L.circle(srcLatLng, 50000, {
+        color: msg.color,
+        fillColor: msg.color,
+        fillOpacity: 0.2,
+    }).addTo(circles);
+    L.circle(dstLatLng, 50000, {
         color: msg.color,
         fillColor: msg.color,
         fillOpacity: 0.2,
@@ -429,29 +434,17 @@ function redrawCountIP2 (hashID, id, countList, codeDict) {
 }
 
 function handleLegend (msg) {
-    var ipCountList = [msg.ips_tracked,
-        msg.iso_code];
-    var countryCountList = [msg.countries_tracked,
-        msg.iso_code];
-    var attackList = [msg.event_time,
-        msg.src_ip,
-        msg.iso_code,
-        msg.country,
-        msg.city,
-        msg.protocol];
+    var ipCountList = [msg.src_ips_tracked, msg.src_iso_code];
+    var countryCountList = [msg.src_countries_tracked, msg.src_iso_code];
+    var attackList = [msg.event_time, msg.src_ip, msg.src_iso_code, msg.src_country, msg.src_city, msg.protocol];
     redrawCountIP('#ip-tracking', 'ip-tracking', ipCountList, msg.ip_to_code);
     redrawCountIP2('#country-tracking', 'country-tracking', countryCountList, msg.country_to_code);
     prependAttackRow('attack-tracking', attackList);
 }
 
 function handleLegendType (msg) {
-    var attackType = [msg.type2];
-    var attackCve = [msg.event_time,
-        msg.type3,
-        msg.iso_code,
-        msg.src_ip,
-        msg.dst_iso_code,
-        msg.dst_ip,
+    var attackType = [msg.msg_type2];
+    var attackCve = [msg.event_time, msg.msg_type3, msg.src_iso_code, msg.src_ip, msg.dst_iso_code, msg.dst_ip,
         //msg.country,
         //msg.city,
         //msg.protocol
@@ -473,21 +466,20 @@ webSock.onmessage = function (e) {
     try {
         var msg = JSON.parse(e.data);
         console.log(msg);
-        switch (msg.type) {
+        switch (msg.msg_type) {
             case "Traffic":
                 console.log("Traffic!");
-                var srcLatLng = new L.LatLng(msg.src_lat, msg.src_long);
-                var dstLatLng = new L.LatLng(msg.dst_lat, msg.dst_long);
+                var srcLatLng = new L.LatLng(msg.src_latitude, msg.src_longitude);
+                var dstLatLng = new L.LatLng(msg.dst_latitude, msg.dst_longitude);
                 // console.log(srcLatLng);
                 // console.log(dstLatLng);
 
                 // var hqPoint = map.latLngToLayerPoint(hqLatLng);
-                var hqPoint = map.latLngToLayerPoint(dstLatLng);
+                var dstPoint = map.latLngToLayerPoint(dstLatLng);
                 var srcPoint = map.latLngToLayerPoint(srcLatLng);
-                console.log('');
-                addCircle(msg, srcLatLng);
+                addCircle(msg, srcLatLng, dstLatLng);
                 handleParticle(msg, srcPoint);
-                handleTraffic(msg, srcPoint, hqPoint, srcLatLng);
+                handleTraffic(msg, srcPoint, dstPoint, srcLatLng);
                 handleLegend(msg);
                 handleLegendType(msg)
                 break;

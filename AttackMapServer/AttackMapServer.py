@@ -13,7 +13,6 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 # import re
-
 # from os import getuid, path
 # from os import path
 from sys import exit
@@ -24,6 +23,9 @@ class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(request):
         request.render('index.html')
+
+
+import pprint
 
 
 class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
@@ -72,48 +74,12 @@ class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
         except Exception as ex:
             return None
         
-        protocol = json_data.get('protocol')
-        print()
-        # TODO Refactor
-        msg_to_send = {
-            'type':json_data.get('msg_type'),
-            'type2':json_data.get('msg_type2'),
-            'type3':json_data.get('msg_type3'),
-            'protocol':protocol,
-            'src_ip':json_data.get('src_ip'),
-            'dst_ip':json_data.get('dst_ip'),
-            'src_port':json_data.get('src_port'),
-            'dst_port':json_data.get('dst_port'),
-            'src_lat':json_data.get('latitude'),
-            'src_long':json_data.get('longitude'),
-            'dst_lat':json_data.get('dst_lat'),
-            'dst_long':json_data.get('dst_long'),
-            'city':json_data.get('city'),
-            'continent':json_data.get('continent'),
-            'continent_code':json_data.get('continent_code'),
-            'country':json_data.get('country'),
-            'iso_code':json_data.get('iso_code'),
-            'postal_code':json_data.get('postal_code'),
-            'color':SERVICE_RGB.get(protocol, SERVICE_RGB.get("OTHER")),
-            'event_count':json_data.get('event_count'),
-            'continents_tracked':json_data.get('continents_tracked'),
-            'countries_tracked':json_data.get('countries_tracked'),
-            # 'ips_tracked': "<a href='" + str(ips_tracked) + "'>" + str(ips_tracked) + "</a>",
-            'ips_tracked':json_data.get('ips_tracked'),
-            'unknowns':json_data.get('unknowns'),
-            'event_time':json_data.get('event_time'),
-            'country_to_code':json_data.get('country_to_code'),
-            'ip_to_code':json_data.get('ip_to_code'),
-            
-            'dst_country_to_code':json_data.get('dst_country_to_code'),
-            'dst_countries_tracked':json_data.get('dst_countries_tracked'),
-            'dst_continent':json_data.get('dst_continent'),
-            "dst_iso_code":json_data.get('dst_iso_code'),
-            'dst_ip_to_code':json_data.get('dst_ip_to_code'),
-            'dst_ips_tracked':json_data.get('dst_ips_tracked'),
-        }
-        print(json_data.get('dst_lat'), json_data.get('dst_long'))
-        self.write_message(json.dumps(msg_to_send))
+        json_data.update({
+            'color':SERVICE_RGB.get(
+                    json_data.get('protocol'),
+                    SERVICE_RGB.get("OTHER"))})
+        
+        self.write_message(json.dumps(json_data))
 
 
 def main():
