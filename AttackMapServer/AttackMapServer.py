@@ -78,7 +78,10 @@ class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
                     json_data.get('protocol'),
                     SERVICE_RGB.get("OTHER"))})
         
-        self.write_message(json.dumps(json_data))
+        try:
+            self.write_message(json.dumps(json_data))
+        except tornado.websocket.WebSocketClosedError:
+            return None
 
 
 def main():
