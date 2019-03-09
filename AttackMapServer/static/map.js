@@ -212,6 +212,7 @@ function addCircle (msg, srcLatLng, dstLatLng) {
     // Only allow 50 circles to be on the map at a time
     if (circleCount >= 50) {
         circles.removeLayer(circleArray[0]);
+        circles.removeLayer(circleArray[0]);
     }
 
     L.circle(srcLatLng, 50000, {

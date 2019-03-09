@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>GeoIP Attack Map</title>
+    <title>GeoIP Traffic Map</title>
 
     <!--SCRIPT LINKS-->
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
@@ -39,108 +39,20 @@
             <table class='table table-condensed'>
                 <thead>
                 <tr>
-                    <th>Color</th>
-                    <th>Service</th>
+                    <th style='width:1%;'>Color</th>
+                    <th style='width:5%;'>Service</th>
                 </tr>
                 </thead>
 
                 <tbody>
+                {% for service in service_items %}
                 <tr>
                     <td>
-                        <div class='circle' id='ftp-color' style='background:#ff0000'></div>
+                        <div class='circle' id='proto-color' style='background:{{ service["rgb"] }}'></div>
                     </td>
-                    <td>FTP</td>
+                    <td>{{ service["name"] }}</td>
                 </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='ssh-color' style='background:#ff8000'></div>
-                    </td>
-                    <td>SSH</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='telnet-color' style='background:#ffff00'></div>
-                    </td>
-                    <td>TELNET</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='email-color' style='background:#80ff00'></div>
-                    </td>
-                    <td>EMAIL</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='whois-color' style='background:#00ff00'></div>
-                    </td>
-                    <td>WHOIS</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='dns-color' style='background:#00ff80'></div>
-                    </td>
-                    <td>DNS</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='http-color' style='background:#00ffff'></div>
-                    </td>
-                    <td>HTTP</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='https-color' style='background:#0080ff'></div>
-                    </td>
-                    <td>HTTPS</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='sql-color' style='background:#0000ff'></div>
-                    </td>
-                    <td>SQL</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='snmp-color' style='background:#8000ff'></div>
-                    </td>
-                    <td>SNMP</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='smb-color' style='background:#bf00ff'></div>
-                    </td>
-                    <td>SMB</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='auth-color' style='background:#ff00ff'></div>
-                    </td>
-                    <td>AUTH</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='rdp-color' style='background:#ff0060'></div>
-                    </td>
-                    <td>RDP</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='dos-color' style='background:#ffccff'></div>
-                    </td>
-                    <td>DOS</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='icmp-color' style='background:#ffcccc'></div>
-                    </td>
-                    <td>ICMP</td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class='circle' id='other-color' style='background:#ffffff'></div>
-                    </td>
-                    <td>OTHER</td>
-                </tr>
+                {% end %}
                 </tbody>
             </table> <!--close service-table-->
         </div> <!--close service col-->
@@ -176,7 +88,7 @@
         </div> <!--close country-origin col-->
 
         <div class='col-md-6'>
-            <table class='table table-condensed' id='live-attacks-table'>
+            <table class='table table-condensed' id='live-traffic-table'>
                 <thead>
                 <tr>
                     <th style='width:20%;'>Timestamp</th>
@@ -196,7 +108,7 @@
 </div> <!--close dashboard-->
 
 <div class='col-md-4'>
-    <table class='table table-condensed' id='type-attacks-table'>
+    <table class='table table-condensed' id='type-service-table'>
         <thead>
         <tr>
             <!-- <th style='width:20%;'>Attack Types</th> -->
@@ -213,7 +125,7 @@
 
 
 <div class='col-md-8'>
-    <table class='table table-condensed' id='type-attacks-table'>
+    <table class='table table-condensed' id='type-traffic-table'>
         <thead>
         <tr>
             <th style='width:10%;'>Timestamp</th>

@@ -25,3 +25,7 @@ SERVICE_RGB = {
     'ICMP':'#ffcccc',
     'OTHER':'#6600cc',
 }
+
+# required input paths
+BLOCK_IP_LIST_FILE = 'block.txt'
+# BLOCK_IP_LIST_FILE = '/mnt/map_attack_blk/LOG4.log'

@@ -12,20 +12,20 @@ import tornadoredis
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
-# import re
+import re
 # from os import getuid, path
-# from os import path
+import os.path
 from sys import exit
-from mapconst import SERVICE_RGB, REDIS_IP, WEBSOCK_PORT
+from mapconst import SERVICE_RGB, REDIS_IP, WEBSOCK_PORT, BLOCK_IP_LIST_FILE
 
 
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(request):
-        request.render('index.html')
-
-
-import pprint
+        service_items = list()
+        for name, rgb in SERVICE_RGB.items():
+            service_items.append({"name":name, "rgb":rgb})
+        request.render('index.html', service_items=service_items)
 
 
 class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
@@ -63,11 +63,10 @@ class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
             print("msg == 0\n")
             return None
         
-        # if 'ip_blocked' in msg:
-        #    ip = re.split(":", msg)
-        # fp = open('/mnt/map_attack_blk/LOG4.log','a')
-        # fp.write(ip[1]+"\n")
-        # fp.close()
+        if 'ip_blocked' in msg:
+            ip = re.split(":", msg)
+            with open(BLOCK_IP_LIST_FILE, 'a') as f:
+                f.write(ip[1] + "\n")
         
         try:
             json_data = json.loads(msg.body)
@@ -85,18 +84,18 @@ class WebSocketChatHandler(tornado.websocket.WebSocketHandler):
 def main():
     # Register handler pages
     handlers = [
+        (r'/', IndexHandler),
         (r'/websocket', WebSocketChatHandler),
         (r'/static/(.*)', tornado.web.StaticFileHandler, {'path':'static'}),
         (r'/flags/(.*)', tornado.web.StaticFileHandler, {'path':'static/flags'}),
-        (r'/', IndexHandler)
     ]
-    
-    # Define the static path
-    # static_path = path.join( path.dirname(__file__), 'static' )
     
     # Define static settings
     settings = {
+        # Define the static path
+        # static_path = path.join( path.dirname(__file__), 'static' )
         # 'static_path': static_path
+        "template_path":os.path.join(os.path.dirname(__file__), 'templates'),
     }
     
     # Create and start app listening on port 8888
